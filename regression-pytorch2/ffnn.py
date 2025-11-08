@@ -57,7 +57,7 @@ model = FFNN().to(device)
 # training
 ############################################################
 
-run_mode = 3  # 1: train & save the model into a file
+run_mode = 1  # 1: train & save the model into a file
               # 2: train but don't save the model
               # 3: load the saved model
 
@@ -66,7 +66,7 @@ if run_mode == 1 or run_mode == 2:
     optimizer = optim.SGD(model.parameters(), lr=0.01)
 
     ## training loop
-    num_epochs = 200
+    num_epochs = 1000
     batch_size = 50
 
     for epoch in range(num_epochs):
@@ -83,7 +83,7 @@ if run_mode == 1 or run_mode == 2:
             optimizer.step()
             running_loss += loss.item()
 
-        print(f"Epoch [{epoch + 1}/200], Loss: {running_loss / batch_size:.4f}")
+        print(f"Epoch [{epoch + 1}/1000], Loss: {running_loss / batch_size:.4f}")
 
     if run_mode == 1:
         torch.save(model.state_dict(), 'z_model.pth')

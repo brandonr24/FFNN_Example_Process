@@ -51,15 +51,16 @@ test_loader = DataLoader(test_dataset, batch_size=50, shuffle=False)
 class FFNN(nn.Module):
     def __init__(self):
         super(FFNN, self).__init__()
-        self.fc1 = nn.Linear(2, 6)
-        self.fc2 = nn.Linear(6, 12)
-        self.fc3 = nn.Linear(12, 1)
+        self.fc1 = nn.Linear(2, 64)
+        self.fc2 = nn.Linear(64, 64)
+        self.fc3 = nn.Linear(64, 1)
+        self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
     def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.tanh(self.fc2(x))
+        x = self.sigmoid(self.fc1(x))
+        x = self.sigmoid(self.fc2(x))
         x = self.fc3(x)
         return x
 
@@ -78,7 +79,7 @@ if run_mode == 1 or run_mode == 2:
     criterion = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-    for epoch in range(500):  # number of epochs
+    for epoch in range(1000):  # number of epochs
         model.train()
         running_loss = 0.0
         for i, (inputs, targets) in enumerate(train_loader):
@@ -89,7 +90,7 @@ if run_mode == 1 or run_mode == 2:
             optimizer.step()
             running_loss += loss.item()
 
-        print(f"Epoch [{epoch + 1}/500], Loss: {running_loss / len(train_loader):.4f}")
+        print(f"Epoch [{epoch + 1}/1000], Loss: {running_loss / len(train_loader):.4f}")
 
     if run_mode == 1:
         torch.save(model.state_dict(), 'xy_model.pth')  # save the model
