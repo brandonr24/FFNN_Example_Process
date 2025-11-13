@@ -8,6 +8,7 @@ import numpy as np
 import math, random
 from sklearn.model_selection import train_test_split
 import torch
+from pathlib import Path
 import torch.nn as nn
 import torch.optim as optim
 from   torch.utils.data import DataLoader, TensorDataset
@@ -51,16 +52,22 @@ test_loader = DataLoader(test_dataset, batch_size=50, shuffle=False)
 class FFNN(nn.Module):
     def __init__(self):
         super(FFNN, self).__init__()
-        self.fc1 = nn.Linear(2, 64)
-        self.fc2 = nn.Linear(64, 64)
-        self.fc3 = nn.Linear(64, 1)
+        self.fc1 = nn.Linear(2, 8)
+        self.fc2 = nn.Linear(8, 4)
+        self.fc3 = nn.Linear(4, 1)
+        # self.fc4 = nn.Linear(16, 8)
+        # self.fc5 = nn.Linear(8, 4)
+        # self.fc6 = nn.Linear(4, 1)
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
 
     def forward(self, x):
-        x = self.sigmoid(self.fc1(x))
-        x = self.sigmoid(self.fc2(x))
+        x = self.tanh(self.fc1(x))
+        x = self.tanh(self.fc2(x))
+        # x = self.tanh(self.fc3(x))
+        # x = self.tanh(self.fc4(x))
+        # x = self.tanh(self.fc5(x))
         x = self.fc3(x)
         return x
 
@@ -71,26 +78,36 @@ model = FFNN().to(device)
 # Training
 ############################################################
 
-run_mode = 1    # 1: train & save the model into a folder
+totalEpochs = 5000
+run_mode = 2    # 1: train & save the model into a folder
                 # 2: train but don't save the model
                 # 3: load the saved model
 
+dataSlot = 1
+while True:
+    path = Path("EpochsData\epochsRangeLoss" + str(dataSlot) + ".txt")
+    if not path.exists():
+        break
+    dataSlot += 1
+
 if run_mode == 1 or run_mode == 2:
-    criterion = nn.MSELoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
+    with open("EpochsData\epochsRangeLoss" + str(dataSlot) + ".txt", "w") as f:
+        f.write("Epoch,Loss\n")
+        criterion = nn.MSELoss()
+        optimizer = optim.SGD(model.parameters(), lr=0.001)
+        for epoch in range(totalEpochs):  # number of epochs
+            model.train()
+            running_loss = 0.0
+            for i, (inputs, targets) in enumerate(train_loader):
+                optimizer.zero_grad()
+                outputs = model(inputs)
+                loss = criterion(outputs, targets)
+                loss.backward()
+                optimizer.step()
+                running_loss += loss.item()
 
-    for epoch in range(1000):  # number of epochs
-        model.train()
-        running_loss = 0.0
-        for i, (inputs, targets) in enumerate(train_loader):
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item()
-
-        print(f"Epoch [{epoch + 1}/1000], Loss: {running_loss / len(train_loader):.4f}")
+            print(f"Epoch [{epoch + 1}/{totalEpochs}], Loss: {running_loss / len(train_loader):.4f}")
+            f.write(str(epoch + 1) + "," + str(running_loss) + "\n")
 
     if run_mode == 1:
         torch.save(model.state_dict(), 'xy_model.pth')  # save the model
