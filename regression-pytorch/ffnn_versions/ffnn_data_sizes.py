@@ -14,7 +14,7 @@ import torch.optim as optim
 from   torch.utils.data import DataLoader, TensorDataset
 
 ## check if GPU is available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 ############################################################
@@ -70,18 +70,30 @@ class FFNN(nn.Module):
         # x = self.tanh(self.fc5(x))
         x = self.fc3(x)
         return x
+    
+def quantile_loss(q):
+    def loss_fn(pred, target):
+        e = target - pred
+        return torch.mean(torch.maximum(q * e, (q - 1) * e))
+    return loss_fn
 
-## instantiate the model and move it to GPU if available
-model = FFNN().to(device)
+def mape_loss(pred, target, eps=1e-6):
+    return torch.mean(torch.abs((target - pred) / (target + eps)))
+
+def log_cosh_loss(pred, target):
+    diff = pred - target
+    return torch.mean(torch.log(torch.cosh(diff)))
 
 ############################################################
 # Training
 ############################################################
 
-totalEpochs = 5000
+totalEpochs = 500
 run_mode = 2    # 1: train & save the model into a folder
                 # 2: train but don't save the model
                 # 3: load the saved model
+
+model = None
 
 dataSlot = 1
 while True:
@@ -90,9 +102,32 @@ while True:
         break
     dataSlot += 1
 
-if run_mode == 1 or run_mode == 2:
-    with open("EpochsData\epochsRangeLoss" + str(dataSlot) + ".txt", "w") as f:
-        f.write("Epoch,Loss\n")
+
+propertyRangeList = ["1000", "2000", "3000", "4000", "5000", "6000", "7000", "8000", "9000"]
+propertyAppend = []
+for changingProperty in propertyRangeList:
+    df = pd.read_csv(f"modified_data\{changingProperty}_points_data.csv")
+
+    X = df[["x1", "x2"]].values   # the input columns
+    y = df[["y"]].values          # the output column
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+    # convert to PyTorch tensors and move to GPU if available
+    X_train_tensor = torch.tensor(X_train, dtype=torch.float32).to(device)
+    y_train_tensor = torch.tensor(y_train, dtype=torch.float32).to(device)
+    X_test_tensor = torch.tensor(X_test, dtype=torch.float32).to(device)
+    y_test_tensor = torch.tensor(y_test, dtype=torch.float32).to(device)
+
+    # create PyTorch datasets and dataloaders
+    train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
+    test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
+
+    train_loader = DataLoader(train_dataset, batch_size=50, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=50, shuffle=False)
+    ## instantiate the model and move it to GPU if available
+    model = FFNN().to(device)
+    if run_mode == 1 or run_mode == 2:
         criterion = nn.MSELoss()
         optimizer = optim.SGD(model.parameters(), lr=0.001)
         for epoch in range(totalEpochs):  # number of epochs
@@ -105,17 +140,28 @@ if run_mode == 1 or run_mode == 2:
                 loss.backward()
                 optimizer.step()
                 running_loss += loss.item()
+            if len(propertyAppend) == epoch:
+                propertyAppend.append(f"{running_loss / len(train_loader):.4f}")
+            else:
+                propertyAppend[epoch] = f"{propertyAppend[epoch]},{running_loss / len(train_loader):.4f}"
 
-            print(f"Epoch [{epoch + 1}/{totalEpochs}], Loss: {running_loss / len(train_loader):.4f}")
-            f.write(str(epoch + 1) + "," + str(running_loss) + "\n")
+            #print(f"Epoch [{epoch + 1}/{totalEpochs}], Loss: {propertyAppend[epoch]}")
 
-    if run_mode == 1:
-        torch.save(model.state_dict(), 'xy_model.pth')  # save the model
+        if run_mode == 1:
+            torch.save(model.state_dict(), 'xy_model.pth')  # save the model
 
-elif run_mode == 3:
-    print("\nLoading stored model...")
-    model.load_state_dict(torch.load('xy_model.pth', map_location=device))
-    model.eval()
+        print(f"Training completed for property: {changingProperty}")
+
+    elif run_mode == 3:
+        print("\nLoading stored model...")
+        model.load_state_dict(torch.load('xy_model.pth', map_location=device))
+        model.eval()
+
+
+with open(r"EpochsData\data_sizes_data.txt", "w") as f:
+    f.write(f"Epoch,{','.join(str(x) for x in propertyRangeList)}\n")
+    for epoch in range(totalEpochs):
+        f.write(str(epoch + 1) + "," + str(propertyAppend[epoch]) + "\n")
 
 ############################################################
 # Show model performance

@@ -2,29 +2,38 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 
-files = sys.argv[1:]
+path = sys.argv[1]
 plt.figure()
 
-run_id = {
-    '1': "Structure 2x64x64x1",
-    '2': "Structure 2x64x32x1",
-    '3': "Structure 2x64x32x16x1",
-    '4': "Structure 2x64x32x16x8x1",
-    '5': "Structure 2x64x32x16x8x4x1",
-    '10': "lr = 0.01",
-    '11': "lr = 0.05",
-    '12': "lr = 0.1",
-    '13': "lr = 0.3",
-    '14': "lr = 0.001"
-}
-
-for path in files:
-    df = pd.read_csv("EpochsData/epochsRangeLoss" + str(path) + ".txt")
-    plt.plot(df["Epoch"], df["Loss"], label=f"Run {run_id[path]}")
+labeling_text = ""
+end_labeling_text = ""
+if path == "learning_rate_data":
+    title = "Training Loss vs. Epochs for Different Learning Rates"
+    labeling_text = "lr = "
+elif path == "ascending_structures_data":
+    title = "Training Loss vs. Epochs for Different Structures"
+    labeling_text = "Structure "
+elif path == "descending_structures_data":
+    title = "Training Loss vs. Epochs for Different Structures"
+    labeling_text = "Structure "
+elif path == "activation_functions_data":
+    title = "Training Loss vs. Epochs for Different Activation Functions"
+elif path == "optimizers_data":
+    title = "Training Loss vs. Epochs for Different Optimizers"
+elif path == "losses_data":
+    title = "Training Loss vs. Epochs for Different Loss Equations"
+elif path == "data_sizes_data":
+    title = "Training Loss vs. Epochs for Different Data Sizes"
+    end_labeling_text = " random points"
+    
+df = pd.read_csv("EpochsData/" + str(path) + ".txt")
+for data in [c for c in df.columns][1:]:
+    plt.plot(df["Epoch"], df[data], label=f"{labeling_text}{data}{end_labeling_text}")
 
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
-plt.title("Training Loss vs Epoch for Sigmoid Activation Function")
+plt.title(title)
 plt.grid(True)
 plt.legend()
+plt.savefig(f"plots/{path}.png", dpi=300, bbox_inches="tight")
 plt.show()
