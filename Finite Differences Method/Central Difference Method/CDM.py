@@ -50,5 +50,5 @@ plt.ylabel('f(t)')
 plt.grid()
 plt.legend(loc='lower right')
 file = "finite_differences_step_sizes"
-plt.savefig(file, bbox_inches='tight', pad_inches=0.1, dpi=100, facecolor="white")
+# plt.savefig(file, bbox_inches='tight', pad_inches=0.1, dpi=100, facecolor="white")
 plt.show()

@@ -3,9 +3,27 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 
-h_ranges = [0.01,0.005,0.001,0.0005,0.0001]
 d, w0 = 2, 20
 s0 = [1, 0] # Initial Condition
+
+class FCN(nn.Module):
+    def __init__(self, N_INPUT, N_OUTPUT, N_HIDDEN, N_LAYERS):
+        super().__init__()
+        activation = nn.Tanh
+        self.fcs = nn.Sequential(*[
+                        nn.Linear(N_INPUT, N_HIDDEN),
+                        activation()])
+        self.fch = nn.Sequential(*[
+                        nn.Sequential(*[
+                            nn.Linear(N_HIDDEN, N_HIDDEN),
+                            activation()]) for _ in range(N_LAYERS-1)])
+        self.fce = nn.Linear(N_HIDDEN, N_OUTPUT)
+        
+    def forward(self, x):
+        x = self.fcs(x)
+        x = self.fch(x)
+        x = self.fce(x)
+        return x
 
 def plot_exact_solution(d, w0):
     x = torch.linspace(0,1,500).view(-1,1)
@@ -20,26 +38,36 @@ def plot_exact_solution(d, w0):
     y  = exp*2*A*cos
     
     plt.plot(x, y, 'black', label='Exact')
+    return y
 
-def f(t_i, s_i):
-    return [s_i[1], (-2*d*s_i[1]-w0**2*s_i[0])]
+def plot_FFNN_solution(d, w0, y_benchmark):
+    x = torch.linspace(0,1,500).view(-1,1)
+    x_data = x[0:200:20]
+    y_data = y_benchmark[0:200:20]
 
-def euler_method(h):
-    t = np.arange(0, 1 + h, h)
+    model = FCN(1,1,32,3)
+    optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
+    
+    for i in range(1500):
+        optimizer.zero_grad()
+        yh = model(x_data)
+        loss = torch.mean((yh - y_data)**2)
+        loss.backward()
+        optimizer.step()
 
-    # Explicit Euler Method
-    s = np.zeros((len(t), 2))
-    s[0] = s0
-
-    for i in range(0, len(t) - 1):
-        s[i + 1] = [s[i][j] + h*f(t[i], s[i])[j] for j in range(2)]
         
-    plt.plot(t, [s[i][0] for i in range(len(s))] , '--', label=f'Approximate With {h} Step Size')
+        if (i + 1) % 500 == 0: 
+            yh = model(x).detach()
+            plt.plot(x, yh, label=f"FFNN after {i + 1} epochs")
+    return model(x)
+
+
 
 plt.figure(figsize = (12, 8))
-for k in h_ranges:
-    euler_method(k)
-plot_exact_solution(d, 20)
+
+y_exact = plot_exact_solution(d, w0)
+y_model = plot_FFNN_solution(d, w0, y_exact)
+
 plt.ylim(-0.75, 1.05)
 plt.xlabel('t')
 plt.ylabel('f(t)')
