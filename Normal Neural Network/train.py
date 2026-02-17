@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 
 d, w0 = 2, 20
-s0 = [1, 0] # Initial Condition
+s0 = [1, 0] # Initial Conditiondfghjhgfghj
 
 class FCN(nn.Module):
     def __init__(self, N_INPUT, N_OUTPUT, N_HIDDEN, N_LAYERS):
