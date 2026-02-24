@@ -1,7 +1,26 @@
 import numpy as np
 import pandas as pd
 import torch
+import torch.optim as optim
 from Neural_Network_Setups.parameters import params
+
+optimizers_function_name = {
+    "adadelta": "Adadelta",
+    "adafactor": "Adafactor",
+    "adagrad": "Adagrad",
+    "adam": "Adam",
+    "adamw": "AdamW",
+    "sparseadam": "SparseAdam",
+    "adamax": "Adamax",
+    "asgd": "ASGD",
+    "lbfgs": "LBFGS",
+    "muon": "Muon",
+    "nadam": "NAdam",
+    "adam": "RAdam",
+    "rmsprop": "RMSprop",
+    "rpop": "RProp",
+    "sgd": "SGD",
+}
 
 def read_parameters():
     params_all_lower = {}
@@ -9,6 +28,7 @@ def read_parameters():
         params_all_lower[next_param.lower()] = \
             params[next_param].lower() if isinstance(params[next_param], str) else params[next_param]
 
+    print(f"Given Paramters: {params_all_lower}")
     return params_all_lower
 
 def oscillator(d, w0, x):
@@ -23,13 +43,13 @@ def oscillator(d, w0, x):
     return y
 
 def choose_optimizer(model, optim_choice, lr):
-    if optim_choice.lower() == "adam":
-        return torch.optim.Adam(model.parameters(), lr = lr)
-    elif optim_choice.lower() == "sgd":
-        return torch.optim.SGD(model.parameters(), lr = lr)
-
-    print("ERROR: Given optimizer was unable to be interpreted, defaulting to Adam")
-    return torch.optim.Adam(model.parameters(), lr = lr) # Default to Adam if Given Param Wasn't Valid
+    try:
+        optimizer_class = getattr(optim, optimizers_function_name[optim_choice])
+    except AttributeError:
+        print("ERROR: Given optimizer was unable to be interpreted, defaulting to Adam")
+        return torch.optim.Adam(model.parameters(), lr = lr) # Default to Adam if Given Param Wasn't Valid
+    
+    return optimizer_class(model.parameters(), lr = lr)
 
 def train_model(model, x_data, y_data, model_params, save_every_epoch_interval = -1):
     d, w0 = 2, 20
