@@ -9,13 +9,14 @@ from Neural_Network_Setups.Classes.FFNN import FCN
 from Neural_Network_Setups.model_training import train_model, oscillator
 
 from Helper_Functions.plotting_and_saving import plot_and_save_model
+from Finite_Differences.forward_difference_method import euler_method
 
 def main():
     model = FCN(1,1,32,3)
-    d, w0 = 2, 20
+    d, w0, s0 = 2, 20, [1, 0] #Initial Conditions
 
     x_data = torch.linspace(0,1,500).view(-1,1)
-    y_data = oscillator(d, w0, x_data)
+    y_data = euler_method(d, w0, s0, 0.002)
 
     train_model(model, x_data, y_data, optim = "Adam", epochs = 9000)
     plot_and_save_model(x_data, model(x_data), "Example")
