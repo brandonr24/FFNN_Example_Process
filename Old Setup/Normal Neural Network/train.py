@@ -80,7 +80,7 @@ def plot_FFNN_solution(d, w0, y_benchmark, plot_type = 0):
     model = FCN(1,1,32,3)
     optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
     
-    for i in range(2000):
+    for i in range(3000):
         optimizer.zero_grad()
         yh = model(x_train_tensor)
         loss = torch.mean((yh - y_train_tensor)**2)
@@ -95,7 +95,11 @@ def plot_FFNN_solution(d, w0, y_benchmark, plot_type = 0):
                     yh_train = model(x_train_tensor)
                     v_loss = torch.mean((yh_train - y_train_tensor)**2)
                     y_train_pred = model(x_train_sorted).detach()
-                    plt.plot(x_train_sorted.numpy(), y_train_pred.numpy(), label=f"FFNN Epoch {i + 1} with loss {v_loss.item():.5f}")
+                    y_actual_average = sum(y_train_tensor)/len(y_train_tensor)
+                    y_residual_sum = torch.mean((yh_train - y_train_tensor)**2)
+                    y_total_sum = torch.mean((y_actual_average - y_train_tensor)**2)
+                    r2_error = 1 - y_residual_sum/y_total_sum
+                    plt.plot(x_train_sorted.numpy(), y_train_pred.numpy(), label=f"FFNN Epoch {i + 1} with R2 error {r2_error:.5f}")
                 elif plot_type == 1:
                     yh_val = model(x_val_tensor)
                     v_loss = torch.mean((yh_val - y_val_tensor)**2)
@@ -115,12 +119,12 @@ plt.figure(figsize = (12, 8))
 y_exact = plot_exact_solution(d, w0)
 data_file = pd.read_excel('data.xlsx')
 y_approx = data_file['step_size_0.0001'].to_numpy()
-y_model = plot_FFNN_solution(d, w0, y_approx, plot_type = 2)
+y_model = plot_FFNN_solution(d, w0, y_approx, plot_type = 0)
 
 plt.xlabel('t')
 plt.ylabel('f(t)')
 plt.grid()
 plt.legend(loc='lower right')
-file = "FFNN_test_graph"
-plt.savefig(file, bbox_inches='tight', pad_inches=0.1, dpi=100, facecolor="white")
+file = "FFNN_train_graph"
+# plt.savefig(file, bbox_inches='tight', pad_inches=0.1, dpi=100, facecolor="white")
 plt.show()
