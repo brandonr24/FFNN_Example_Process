@@ -18,6 +18,10 @@ def plot_multiple_data(x_data, y_data, file_name = "Plot", save_plot = False):
     if save_plot: plt.savefig(f"{plots_path}\{file_name}.jpg")
     plt.show()
 
+def save_data(y_data, legend = None, file_name = "Data"):
+    df = pd.DataFrame({legend if legend else "Data": y_data.detach().numpy().flatten()})
+    df.to_excel(f"{data_path}\{file_name}.xlsx") # Save to Excel Document
+
 def save_multiple_data(y_data_array, legend = None, file_name = "Data"):
     data_formatted = {}
     for index, data_tensor in enumerate(y_data_array):
