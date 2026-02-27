@@ -77,12 +77,20 @@ def train_model(model, x_data, y_data, model_params, save_every_epoch_interval =
         optimizer.step()
 
         if save_every_epoch_interval != -1 and not (i + 1) % save_every_epoch_interval:
+            y_outputs.append(x_train)
+            legend_outputs.append(f"Train Input Epoch {i + 1}")
             y_outputs.append(model(x_train))
-            legend_outputs.append(f"Train Epoch {i + 1}")
+            legend_outputs.append(f"Train Output Epoch {i + 1}")
+            
+            y_outputs.append(x_test)
+            legend_outputs.append(f"Test Input Epoch {i + 1}")
             y_outputs.append(model(x_test))
-            legend_outputs.append(f"Test Epoch {i + 1}")
+            legend_outputs.append(f"Test Output Epoch {i + 1}")
+            
+            y_outputs.append(x_val)
+            legend_outputs.append(f"Val Input Epoch {i + 1}")
             y_outputs.append(model(x_val))
-            legend_outputs.append(f"Val Epoch {i + 1}")
+            legend_outputs.append(f"Val Output Epoch {i + 1}")
 
     y_outputs.append(torch.tensor([calculate_r2(model(x_train), y_train)]))
     legend_outputs.append("Final Train R_2")
@@ -91,4 +99,5 @@ def train_model(model, x_data, y_data, model_params, save_every_epoch_interval =
     y_outputs.append(torch.tensor([calculate_r2(model(x_val), y_val)]))
     legend_outputs.append("Final Val R_2")
 
+    print(f"Finished Training for Paramters: {model_params}")
     return y_outputs, legend_outputs
