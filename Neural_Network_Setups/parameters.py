@@ -1,5 +1,5 @@
 params = {
     "optimizer": "SGD",
-    "Epochs": 100,
+    "Epochs": 4000,
     "lr0": 1e-3,
 }
