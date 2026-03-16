@@ -63,9 +63,11 @@ def train_model(model, x_data, y_data, model_params, save_every_epoch_interval =
     x_val, y_val = x_data[2], y_data[2]
 
     optimizer = choose_optimizer(model, model_params["optimizer"] if "optimizer" in model_params else "adam", lr = 1e-3)
-    x_outputs, y_outputs, legend_outputs = [], [], []
+    y_outputs, legend_outputs = [], []
+    x_output = torch.cat((x_train, x_test, x_val), dim=0)
 
     for i in range(model_params["epochs"] if "epochs" in model_params else 1000):
+        model.train()
         optimizer.zero_grad()
         yh = model(x_train)
         loss = torch.mean((yh-y_train)**2)# use mean squared error
@@ -73,15 +75,13 @@ def train_model(model, x_data, y_data, model_params, save_every_epoch_interval =
         optimizer.step()
 
         if save_every_epoch_interval != -1 and not (i + 1) % save_every_epoch_interval:
-            x_outputs.append(x_train)
+
             y_outputs.append(model(x_train))
             legend_outputs.append(f"Train Epoch {i + 1}")
             
-            x_outputs.append(x_test)
             y_outputs.append(model(x_test))
             legend_outputs.append(f"Test Epoch {i + 1}")
             
-            x_outputs.append(x_val)
             y_outputs.append(model(x_val))
             legend_outputs.append(f"Val Epoch {i + 1}")
 
@@ -93,44 +93,44 @@ def train_model(model, x_data, y_data, model_params, save_every_epoch_interval =
     legend_outputs.append("Final Val R_2")
 
     print(f"Finished Training for Paramters: {model_params}")
-    return x_outputs, y_outputs, legend_outputs
+    return x_output, y_outputs, legend_outputs
 
-def train_model(model, x_data, y_data, model_params, save_every_epoch_interval = -1):
-    mu, k = 2*d, w0^2
+# def train_model(model, x_data, y_data, model_params, save_every_epoch_interval = -1):
+#     mu, k = 2*d, w0^2
 
-    x_test, y_test = x_data[0], y_data[0]
-    x_train, y_train = x_data[1], y_data[1]
-    x_val, y_val = x_data[2], y_data[2]
+#     x_test, y_test = x_data[0], y_data[0]
+#     x_train, y_train = x_data[1], y_data[1]
+#     x_val, y_val = x_data[2], y_data[2]
 
-    optimizer = choose_optimizer(model, model_params["optimizer"] if "optimizer" in model_params else "adam", lr = 1e-3)
-    x_outputs, y_outputs, legend_outputs = [], [], []
+#     optimizer = choose_optimizer(model, model_params["optimizer"] if "optimizer" in model_params else "adam", lr = 1e-3)
+#     x_outputs, y_outputs, legend_outputs = [], [], []
 
-    for i in range(model_params["epochs"] if "epochs" in model_params else 1000):
-        optimizer.zero_grad()
-        yh = model(x_train)
-        loss = torch.mean((yh-y_train)**2)# use mean squared error
-        loss.backward()
-        optimizer.step()
+#     for i in range(model_params["epochs"] if "epochs" in model_params else 1000):
+#         optimizer.zero_grad()
+#         yh = model(x_train)
+#         loss = torch.mean((yh-y_train)**2)# use mean squared error
+#         loss.backward()
+#         optimizer.step()
 
-        if save_every_epoch_interval != -1 and not (i + 1) % save_every_epoch_interval:
-            x_outputs.append(x_train)
-            y_outputs.append(model(x_train))
-            legend_outputs.append(f"Train Epoch {i + 1}")
+#         if save_every_epoch_interval != -1 and not (i + 1) % save_every_epoch_interval:
+#             x_outputs.append(x_train)
+#             y_outputs.append(model(x_train))
+#             legend_outputs.append(f"Train Epoch {i + 1}")
             
-            x_outputs.append(x_test)
-            y_outputs.append(model(x_test))
-            legend_outputs.append(f"Test Epoch {i + 1}")
+#             x_outputs.append(x_test)
+#             y_outputs.append(model(x_test))
+#             legend_outputs.append(f"Test Epoch {i + 1}")
             
-            x_outputs.append(x_val)
-            y_outputs.append(model(x_val))
-            legend_outputs.append(f"Val Epoch {i + 1}")
+#             x_outputs.append(x_val)
+#             y_outputs.append(model(x_val))
+#             legend_outputs.append(f"Val Epoch {i + 1}")
 
-    y_outputs.append(torch.tensor([calculate_r2(model(x_train), y_train)]))
-    legend_outputs.append("Final Train R_2")
-    y_outputs.append(torch.tensor([calculate_r2(model(x_test), y_test)]))
-    legend_outputs.append("Final Test R_2")
-    y_outputs.append(torch.tensor([calculate_r2(model(x_val), y_val)]))
-    legend_outputs.append("Final Val R_2")
+#     y_outputs.append(torch.tensor([calculate_r2(model(x_train), y_train)]))
+#     legend_outputs.append("Final Train R_2")
+#     y_outputs.append(torch.tensor([calculate_r2(model(x_test), y_test)]))
+#     legend_outputs.append("Final Test R_2")
+#     y_outputs.append(torch.tensor([calculate_r2(model(x_val), y_val)]))
+#     legend_outputs.append("Final Val R_2")
 
-    print(f"Finished Training for Paramters: {model_params}")
-    return x_outputs, y_outputs, legend_outputs
+#     print(f"Finished Training for Paramters: {model_params}")
+#     return x_outputs, y_outputs, legend_outputs

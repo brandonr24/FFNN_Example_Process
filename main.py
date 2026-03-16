@@ -20,8 +20,8 @@ def main():
     x_data, y_data = get_data_from_folder("Data/Central_Diff_0.0001/")
 
     all_parameters = read_parameters()
-    x_outputs, y_outputs, legend_outputs = train_model_physics(model, x_data, y_data, all_parameters, save_every_epoch_interval = 2500)
-    plot_multiple_data(x_outputs, y_outputs, legend = legend_outputs, save_plot=True, file_name="Testing")
+    x_output, y_outputs, legend_outputs = train_model(model, x_data, y_data, all_parameters, save_every_epoch_interval = 500)
+    save_multiple_data(x_output, y_outputs, legend = legend_outputs, file_name="Testing")
 
 if __name__ == "__main__":
     main()
