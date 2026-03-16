@@ -30,6 +30,9 @@ def euler_method_central(d, w0, s0, h):
     s[0] = s0
 
     for i in range(0, len(t) - 1):
-        s[i + 1] = [s[i][j] + h*f_central(d, w0, t[i], s[i])[j] for j in range(2)]
+        f_current = f_central(d, w0, t[i], s[i])
+        s_mid = s[i] + (h / 2) * f_current
+        f_mid = f_central(d, w0, t[i] + (h / 2), s_mid)
+        s[i + 1] = s[i] + h * f_mid
         
-    return torch.from_numpy(s[:-1])
+    return torch.from_numpy(s[:-1, 0])
