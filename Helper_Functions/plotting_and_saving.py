@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy
 import torch
+import os
 
 model_training_data_path = "Data"
 data_path = "Results\Data"
@@ -16,29 +17,25 @@ def plot_and_save_data(x_data, y_data, file_name = "Data", save_plot = False, sa
     if save_plot: plt.savefig(f"{plots_path}\{file_name}.jpg")
     plt.show()
 
-def plot_multiple_data(xy_data, legend=None, file_name="Plot", save_plot=False, plots_path="."):
-    # Iterate through the pairs, ignoring the 3 R_2 values at the end
-    for i in range(0, len(xy_data) - 3, 2):
-        x = xy_data[i].detach().squeeze()
-        y = xy_data[i+1].detach().squeeze()
+def plot_multiple_data(x_data, y_data, legend=None, file_name="Plot", save_plot=False, plots_path="."):
+    for i in range(len(x_data)):
+        x = x_data[i].detach().squeeze()
+        y = y_data[i].detach().squeeze()
         
-        # Sort values so the plot lines draw cleanly from left to right
         x_sorted, indices = torch.sort(x)
         y_sorted = y[indices]
         
         x_np = x_sorted.cpu().numpy()
         y_np = y_sorted.cpu().numpy()
         
-        # FIX: Grab legend[i+1] to get the "Output" label instead of the "Input" label
-        current_label = legend[i+1] if legend and (i+1) < len(legend) else None
+        current_label = legend[i] if legend and i < len(legend) else None
         
         plt.plot(x_np, y_np, label=current_label) 
         
     if legend:
         plt.legend()
         
-    if save_plot: 
-        # Note: Ensure plots_path is defined or passed as an argument
+    if save_plot:
         save_file = os.path.join(plots_path, f"{file_name}.jpg")
         plt.savefig(save_file)
         

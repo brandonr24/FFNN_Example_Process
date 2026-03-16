@@ -12,16 +12,15 @@ from Helper_Functions.plotting_and_saving import *
 from Helper_Functions.sorting_and_retrieving import *
 from Finite_Differences.finite_differences_method import *
 
-d, w0, s0 = 2, 20, [1, 0] #Initial Conditions
+from main import d, w0, s0
 
 def main():
-    model = FCN(1, 1, 256, 3)
-
     x_data, y_data = get_data_from_folder("Data/Central_Diff_0.0001/")
 
-    all_parameters = read_parameters()
-    x_outputs, y_outputs, legend_outputs = train_model_physics(model, x_data, y_data, all_parameters, save_every_epoch_interval = 2500)
-    plot_multiple_data(x_outputs, y_outputs, legend = legend_outputs, save_plot=True, file_name="Testing")
+    plt.plot(x_data[0], oscillator(d, w0, x_data[0]), label = "computed")
+    plt.plot(x_data[0], y_data[0], label = "numerical")
+    plt.legend()
+    plt.show()
 
 if __name__ == "__main__":
     main()
