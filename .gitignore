@@ -3,3 +3,4 @@ Results/*
 Neural_Network_Setups/__pycache__/*
 Helper_Functions/__pycache__/*
 Finite_Differences/__pycache__/*
+.venv/*

@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 import numpy
 import torch
 import os
+from pathlib import Path
 
 model_training_data_path = "Data"
 data_path = "Results\Data"
@@ -59,9 +60,10 @@ def save_data(y_data, legend = None, file_name = "Data"):
 import pandas as pd
 import torch
 
-def save_multiple_data(x_data, y_data_array, legend=None, file_name="Data"):
+def save_multiple_data(x_data, y_data_array, legend=None, file_name="dataFile"):
     x_flat = x_data.detach().cpu().numpy().flatten()
     df = pd.DataFrame({"X_Data": x_flat})
+    save_path = Path("Results/Data") / f"{file_name}.csv"
     
     l_train = len(y_data_array[0])
     l_test = len(y_data_array[1])
@@ -88,9 +90,9 @@ def save_multiple_data(x_data, y_data_array, legend=None, file_name="Data"):
                 
         df[data_name] = series
         
-    df.to_csv(f"{file_name}.csv", index=False)
+    df.to_csv(save_path, index=False)
     
-    print(f"Data successfully saved to {file_name}.csv")
+    print(f"Data successfully saved to {save_path}")
     return df
 
 def save_training_data(x_data, y_data, file_name = "Data"):
